@@ -17,15 +17,16 @@ public class LinearHashTable<Key, Value> implements HashTable<Key, Value> {
 
 	@SuppressWarnings("unchecked")
 	public LinearHashTable(int capacity) {
+		this.capacity = capacity;
 		keys = (Key[]) new Object[capacity];
 		values = (Value[]) new Object[capacity];
 	}
 
-	private int size() {
+	public int size() {
 		return this.size;
 	}
 
-	private int capacity() {
+	public int capacity() {
 		return capacity;
 	}
 
@@ -47,13 +48,15 @@ public class LinearHashTable<Key, Value> implements HashTable<Key, Value> {
 
 		LinearHashTable<Key, Value> temp = new LinearHashTable<>(capacity);
 
-		for (int i = 0; i < size(); i++) {
+		for (int i = 0; i < keys.length; i++) {
 			if (keys[i] != null)
 				temp.put(keys[i], values[i]);
 		}
 
 		keys = temp.keys;
 		values = temp.values;
+		this.capacity = temp.capacity;
+		this.size = temp.size;
 
 	}
 
@@ -70,7 +73,7 @@ public class LinearHashTable<Key, Value> implements HashTable<Key, Value> {
 		keys[cellNo] = key;
 		values[cellNo] = val;
 
-		if (size() * 10 > 8 * capacity())
+		if (loadFactor() > 0.7)
 			resize(2 * capacity);
 	}
 
@@ -121,12 +124,12 @@ public class LinearHashTable<Key, Value> implements HashTable<Key, Value> {
 		}
 
 		size--;
-		if (size() * 4 < capacity)
+		if (loadFactor() < 0.1)
 			resize(capacity / 2);
 	}
 
 	private boolean isInCircularRange(int index, int start, int end) {
-		System.out.println();
+//		System.out.println();
 		if (start <= end) {
 			if (index > start && index <= end)
 				return true;
@@ -157,6 +160,10 @@ public class LinearHashTable<Key, Value> implements HashTable<Key, Value> {
 		}
 
 		return repr.toString();
+	}
+
+	public double loadFactor() {
+		return size * 1.0 / capacity;
 	}
 
 }

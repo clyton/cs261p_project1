@@ -11,13 +11,27 @@ public class ChainedHashTable<Key, Value> implements HashTable<Key, Value> {
 	int capacity = PRIME_NUMBER;
 	int size = 0;
 
+	@SuppressWarnings("unchecked")
 	public ChainedHashTable() {
-		hashTable = (LinkedList<Entry<Key, Value>>[]) new Object[capacity];
+		hashTable = (LinkedList<Entry<Key, Value>>[]) new LinkedList<?>[capacity];
 	}
 
+	@SuppressWarnings("unchecked")
 	public ChainedHashTable(int capacity) {
 		this.capacity = capacity;
-		hashTable = (LinkedList<Entry<Key, Value>>[]) new Object[capacity];
+		// Refer generic array creation from here
+		// https://stackoverflow.com/questions/217065/cannot-create-an-array-of-linkedlists-in-java
+
+//		hashTable = (LinkedList<Entry<Key, Value>>[]) new Object[capacity];
+		hashTable = (LinkedList<Entry<Key, Value>>[]) new LinkedList<?>[capacity];
+	}
+
+	public int size() {
+		return size;
+	}
+
+	public int capacity() {
+		return capacity;
 	}
 
 	private int hash(Key key) {
@@ -55,9 +69,13 @@ public class ChainedHashTable<Key, Value> implements HashTable<Key, Value> {
 
 		size++;
 
-		if (size * 1.0 / capacity > 0.7)
+		if (loadFactor() > 0.7)
 			resize(capacity * 2);
 
+	}
+
+	public double loadFactor() {
+		return size * 1.0 / capacity;
 	}
 
 	private void resize(int capacity) {
@@ -117,9 +135,25 @@ public class ChainedHashTable<Key, Value> implements HashTable<Key, Value> {
 			}
 		}
 
-		if (size * 1.0 / capacity < 0.12)
+		if (loadFactor() < 0.12)
 			resize(capacity / 3);
 
+	}
+
+	public String toString() {
+		StringBuffer repr = new StringBuffer("[");
+		for (int i = 0; i < hashTable.length; i++) {
+			repr.append(String.format("\n[%5d] -- > ", i));
+			if (hashTable[i] != null)
+				for (Entry<Key, Value> entry : hashTable[i]) {
+					repr.append(String.format("{%s,%s} -+- ", entry.getKey(),
+							entry.getValue()));
+
+				}
+		}
+		repr.append("]");
+
+		return repr.toString();
 	}
 
 }

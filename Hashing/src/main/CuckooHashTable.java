@@ -8,6 +8,7 @@ public class CuckooHashTable<Key, Value> implements HashTable<Key, Value> {
 	protected int capacity = PRIME_NUMBER * 2;
 	protected UnionFind cellSet;
 	protected boolean[] cycleList;
+	private int size = 0;
 
 	@SuppressWarnings("unchecked")
 	public CuckooHashTable() {
@@ -17,12 +18,21 @@ public class CuckooHashTable<Key, Value> implements HashTable<Key, Value> {
 		cycleList = new boolean[capacity];
 	}
 
+	@SuppressWarnings("unchecked")
 	public CuckooHashTable(int capacity) {
 		this.capacity = capacity;
 		keys = (Key[]) new Object[capacity];
 		values = (Value[]) new Object[capacity];
 		cellSet = new UnionFind(capacity);
 		cycleList = new boolean[capacity];
+	}
+
+	public int size() {
+		return size;
+	}
+
+	public int capacity() {
+		return capacity;
 	}
 
 	/**
@@ -81,13 +91,15 @@ public class CuckooHashTable<Key, Value> implements HashTable<Key, Value> {
 			key = tempkey;
 			val = tempval;
 		}
+		if (!key.equals(keys[cellNo]))
+			size++;
 		keys[cellNo] = key;
 		values[cellNo] = val;
 	}
 
 	private void resize(int cap) {
-		System.out.println("Calling resize");
-		CuckooHashTable newTable = new CuckooHashTable(cap);
+//		System.out.println("Calling resize");
+		CuckooHashTable<Key, Value> newTable = new CuckooHashTable<>(cap);
 		for (int i = 0; i < keys.length; i++)
 			if (keys[i] != null)
 				newTable.put(keys[i], values[i]);
@@ -97,6 +109,7 @@ public class CuckooHashTable<Key, Value> implements HashTable<Key, Value> {
 		this.cycleList = newTable.cycleList;
 		this.keys = (Key[]) newTable.keys;
 		this.values = (Value[]) newTable.values;
+		this.size = newTable.size;
 
 	}
 
@@ -124,6 +137,7 @@ public class CuckooHashTable<Key, Value> implements HashTable<Key, Value> {
 			if (key.equals(keys[cellNo])) {
 				keys[cellNo] = null;
 				values[cellNo] = null;
+				size--;
 				break;
 			}
 		}
@@ -145,6 +159,10 @@ public class CuckooHashTable<Key, Value> implements HashTable<Key, Value> {
 		}
 
 		return repr.toString();
+	}
+
+	public double loadFactor() {
+		return size * 1.0 / capacity;
 	}
 
 }

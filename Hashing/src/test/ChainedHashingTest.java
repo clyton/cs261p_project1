@@ -15,13 +15,16 @@ public class ChainedHashingTest {
 
 		System.out.println(ht);
 
-		ht.remove(18);
+		System.out.println(ht.get(44));
+
+		ht.remove(44);
 		System.out.println(ht);
 //		ht.remove(2000);
 //
 //		System.out.println(ht);
 //
 //		ht.remove(20);
+		System.out.println(ht.get(44));
 //
 //		System.out.println(ht);
 ////
