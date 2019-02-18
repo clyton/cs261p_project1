@@ -32,7 +32,8 @@ public class QuadraticProbing<Key, Value> implements HashTable<Key, Value> {
 
 		int hashCode = key.hashCode();
 		hashCode = hashCode < 0 ? -1 * hashCode : hashCode;
-		return (hashCode + count * count) % capacity;
+		hashCode = hashCode % capacity;
+		return (hashCode + (count * count) % capacity) % capacity;
 	}
 
 	@Override
@@ -132,6 +133,7 @@ public class QuadraticProbing<Key, Value> implements HashTable<Key, Value> {
 		if (hashTable[cell] == null || count >= capacity)
 			return;
 
+		hashTable[cell] = null;
 		// matching key found
 		int nextCell;
 		for (nextCell = hash(key, ++count); hashTable[nextCell] != null

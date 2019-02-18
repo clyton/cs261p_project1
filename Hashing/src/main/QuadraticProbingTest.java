@@ -1,12 +1,17 @@
 package main;
 
+import java.util.Arrays;
 import java.util.Random;
 
 public class QuadraticProbingTest {
 //	QuadraticProbing<Integer, Integer> ht = new QuadraticProbing<>();
 //	LinearHashTable<Integer, Integer> ht = new LinearHashTable<>();
 //	ChainedHashTable<Integer, Integer> ht = new ChainedHashTable<>();
-	CuckooHashTable<Integer, Integer> ht = new CuckooHashTable<>();
+//	CuckooHashTable<Integer, Integer> ht = new CuckooHashTable<>();
+//	HashTable<Integer, Integer> ht = new CuckooHashTable<>();
+//	HashTable<Integer, Integer> ht = new ChainedHashTable<>();
+//	HashTable<Integer, Integer> ht = new LinearHashTable<>();
+	HashTable<Integer, Integer> ht = new QuadraticProbing<>();
 
 	public void generateRandomKeyValue(int[] key, int[] value) {
 		for (int i = 0; i < key.length; i++) {
@@ -30,15 +35,12 @@ public class QuadraticProbingTest {
 	}
 
 	public void populate(int key[], int value[], int start, int end) {
-		for (int i = 0; i < 16; i++) {
-			System.out.println(key[i]);
-		}
+		System.out.printf("OPERATION, TIME , SIZE , CAPACITY , LOAD_FACTOR\n");
 
 		for (int i = start; i < end; i++) {
 			long startTime = System.nanoTime();
 			ht.put(key[i], value[i]);
-			System.out.printf(
-					"Time passed = %d, Size = %d, Capacity = %d, LoadFactor = %f\n",
+			System.out.printf("PUT, %d, %d, %d, %f\n",
 					(System.nanoTime() - startTime), ht.size(), ht.capacity(),
 					ht.loadFactor());
 
@@ -98,7 +100,7 @@ public class QuadraticProbingTest {
 
 	public void test1() {
 
-		final int testSize = 10000;
+		final int testSize = 10;
 		int key[] = new int[testSize];
 		int value[] = new int[testSize];
 		generateRandomKeyValue(key, value);
@@ -112,7 +114,7 @@ public class QuadraticProbingTest {
 
 	public void test2() {
 
-		final int testSize = 10000;
+		final int testSize = 100;
 		int key[] = new int[testSize];
 		int value[] = new int[testSize];
 		generateRandomKeyValue(key, value);
@@ -123,21 +125,59 @@ public class QuadraticProbingTest {
 		System.out
 				.println("load factor = " + ht.loadFactor() + " end = " + end);
 		getKeysShouldPass(key, value, 0, end, 1);
+		System.out.println(Arrays.toString(key));
+		System.out.println(Arrays.toString(value));
 		removeKeys(key, 0, end - 3, 1);
 		System.out.println("Get keys at load factor = " + ht.loadFactor());
 		getKeysShouldPass(key, value, end - 3, end, 1);
 		System.out.println("Get keys at load factor = " + ht.loadFactor());
 		getKeysShouldReturnNull(key, 0, end - 3, 1);
+		System.out.println(ht);
+
+	}
+
+	// performance testing load, get and remove successful operations
+	public void test3() {
+
+		final int testSize = 1000;
+		int key[] = new int[testSize];
+		int value[] = new int[testSize];
+		generateRandomKeyValue(key, value);
+		populate(key, value, 0, key.length);
+		getAndRemoveSuccessfully(key, value);
+	}
+
+	private void getAndRemoveSuccessfully(int[] key, int[] value) {
+
+		System.out.printf("OPERATION, TIME , SIZE , CAPACITY , LOAD_FACTOR\n");
+		for (int i = 0; i < key.length; i++) {
+
+			double lf = ht.loadFactor();
+			int capacity = ht.capacity();
+			int size = ht.size();
+
+			long start = System.nanoTime();
+			Integer val = ht.get(key[i]);
+			long getDuration = System.nanoTime() - start;
+			System.out.printf("GET, %d, %d, %d, %f\n", getDuration, size,
+					capacity, lf);
+
+			start = System.nanoTime();
+			ht.remove(key[i]);
+			long removeDuration = System.nanoTime() - start;
+
+			System.out.printf("REMOVE, %d, %d, %d, %f\n", removeDuration, size,
+					capacity, lf);
+		}
+
 	}
 
 	public static void main(String[] args) {
 		QuadraticProbingTest qt = new QuadraticProbingTest();
-
-		qt.test1();
-
-		System.out.println("Running test 2");
+//		qt.test1();
 		qt.test2();
-		System.out.println("All tests passed");
+
+//		qt.test3();
 	}
 
 }
