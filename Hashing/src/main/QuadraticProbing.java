@@ -6,15 +6,17 @@ public class QuadraticProbing<Key, Value> implements HashTable<Key, Value> {
 	int capacity = PRIME_NUMBER;
 	int size = 0;
 	Entry<Key, Value> hashTable[];
+	boolean[] deleted;
 
 	public QuadraticProbing() {
 		hashTable = (Entry<Key, Value>[]) new Entry<?, ?>[capacity];
-
+		deleted = new boolean[capacity];
 	}
 
 	public QuadraticProbing(int capacity) {
 		this.capacity = capacity;
 		hashTable = (Entry<Key, Value>[]) new Entry<?, ?>[capacity];
+		deleted = new boolean[capacity];
 
 	}
 
@@ -44,7 +46,7 @@ public class QuadraticProbing<Key, Value> implements HashTable<Key, Value> {
 		int cellNo = 0;
 		// https://stackoverflow.com/questions/12121217/limit-for-quadratic-probing-a-hash-table
 		while ((cellNo = hash(key, count)) >= 0 && hashTable[cellNo] != null
-				&& !key.equals(hashTable[cellNo].getKey())
+				&& !deleted[cellNo] && !key.equals(hashTable[cellNo].getKey())
 				&& count < capacity) {
 			count++;
 		}
@@ -55,7 +57,7 @@ public class QuadraticProbing<Key, Value> implements HashTable<Key, Value> {
 			return;
 		}
 
-		if (hashTable[cellNo] == null) { // not the same key
+		if (hashTable[cellNo] == null || deleted[cellNo]) { // not the same key
 			size++;
 		}
 
@@ -74,7 +76,7 @@ public class QuadraticProbing<Key, Value> implements HashTable<Key, Value> {
 				capacity);
 
 		for (int i = 0; i < hashTable.length; i++) {
-			if (hashTable[i] != null)
+			if (hashTable[i] != null && !deleted[i])
 				resizedTable.put(hashTable[i].getKey(),
 						hashTable[i].getValue());
 		}
@@ -82,6 +84,7 @@ public class QuadraticProbing<Key, Value> implements HashTable<Key, Value> {
 		this.capacity = resizedTable.capacity;
 		this.hashTable = resizedTable.hashTable;
 		this.size = resizedTable.size;
+		this.deleted = resizedTable.deleted;
 
 	}
 
@@ -112,7 +115,7 @@ public class QuadraticProbing<Key, Value> implements HashTable<Key, Value> {
 			cellNo = hash(key, ++count);
 		}
 
-		if (count >= capacity || hashTable[cellNo] == null)
+		if (count >= capacity || hashTable[cellNo] == null || deleted[cellNo])
 			return -1;
 
 		return cellNo;
@@ -133,18 +136,7 @@ public class QuadraticProbing<Key, Value> implements HashTable<Key, Value> {
 		if (hashTable[cell] == null || count >= capacity)
 			return;
 
-		hashTable[cell] = null;
-		// matching key found
-		int nextCell;
-		for (nextCell = hash(key, ++count); hashTable[nextCell] != null
-				&& count < capacity; nextCell = hash(key, ++count)) {
-			if (hash(hashTable[nextCell].getKey(), 0) == hash(key, 0)) {
-				hashTable[cell] = hashTable[nextCell];
-				cell = nextCell;
-			}
-		}
-
-		hashTable[cell] = null;
+		deleted[cell] = true;
 
 		size--;
 		if (loadFactor() < 0.1)
@@ -159,7 +151,7 @@ public class QuadraticProbing<Key, Value> implements HashTable<Key, Value> {
 	public String toString() {
 		StringBuffer repr = new StringBuffer("[");
 		for (int i = 0; i < hashTable.length; i++) {
-			if (hashTable[i] != null)
+			if (hashTable[i] != null && !deleted[i])
 				repr.append(String.format("{%s,%s}", hashTable[i].getKey(),
 						hashTable[i].getValue()));
 			if (i != hashTable.length - 1)

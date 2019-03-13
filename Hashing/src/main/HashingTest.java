@@ -3,15 +3,15 @@ package main;
 import java.util.Arrays;
 import java.util.Random;
 
-public class QuadraticProbingTest {
+public class HashingTest {
 //	QuadraticProbing<Integer, Integer> ht = new QuadraticProbing<>();
 //	LinearHashTable<Integer, Integer> ht = new LinearHashTable<>();
 //	ChainedHashTable<Integer, Integer> ht = new ChainedHashTable<>();
 //	CuckooHashTable<Integer, Integer> ht = new CuckooHashTable<>();
-//	HashTable<Integer, Integer> ht = new CuckooHashTable<>();
+	HashTable<Integer, Integer> ht = new CuckooHashTable<>();
 //	HashTable<Integer, Integer> ht = new ChainedHashTable<>();
 //	HashTable<Integer, Integer> ht = new LinearHashTable<>();
-	HashTable<Integer, Integer> ht = new QuadraticProbing<>();
+//	HashTable<Integer, Integer> ht = new QuadraticProbing<>();
 
 	public void generateRandomKeyValue(int[] key, int[] value) {
 		for (int i = 0; i < key.length; i++) {
@@ -85,7 +85,8 @@ public class QuadraticProbingTest {
 		for (int i = start; i < end; i += step) {
 			Integer r = ht.get(key[i]);
 			if (r == null || r != value[i])
-				System.out.println("Expected value but got " + r);
+				System.out.println(
+						"Expected value " + value[i] + " but got " + r);
 		}
 	}
 
@@ -100,7 +101,7 @@ public class QuadraticProbingTest {
 
 	public void test1() {
 
-		final int testSize = 10;
+		final int testSize = 10000;
 		int key[] = new int[testSize];
 		int value[] = new int[testSize];
 		generateRandomKeyValue(key, value);
@@ -114,7 +115,7 @@ public class QuadraticProbingTest {
 
 	public void test2() {
 
-		final int testSize = 100;
+		final int testSize = 10000;
 		int key[] = new int[testSize];
 		int value[] = new int[testSize];
 		generateRandomKeyValue(key, value);
@@ -139,15 +140,18 @@ public class QuadraticProbingTest {
 	// performance testing load, get and remove successful operations
 	public void test3() {
 
-		final int testSize = 1000;
+		final int testSize = 500;
 		int key[] = new int[testSize];
 		int value[] = new int[testSize];
 		generateRandomKeyValue(key, value);
 		populate(key, value, 0, key.length);
-		getAndRemoveSuccessfully(key, value);
+		getAndRemoveSuccessfully(key, value, false);
+		populate(key, value, 0, key.length);
+		getAndRemoveSuccessfully(key, value, true);
 	}
 
-	private void getAndRemoveSuccessfully(int[] key, int[] value) {
+	private void getAndRemoveSuccessfully(int[] key, int[] value,
+			boolean flag) {
 
 		System.out.printf("OPERATION, TIME , SIZE , CAPACITY , LOAD_FACTOR\n");
 		for (int i = 0; i < key.length; i++) {
@@ -159,25 +163,48 @@ public class QuadraticProbingTest {
 			long start = System.nanoTime();
 			Integer val = ht.get(key[i]);
 			long getDuration = System.nanoTime() - start;
-			System.out.printf("GET, %d, %d, %d, %f\n", getDuration, size,
-					capacity, lf);
+			if (!flag)
+				System.out.printf("GET, %d, %d, %d, %f\n", getDuration, size,
+						capacity, lf);
 
 			start = System.nanoTime();
 			ht.remove(key[i]);
 			long removeDuration = System.nanoTime() - start;
 
-			System.out.printf("REMOVE, %d, %d, %d, %f\n", removeDuration, size,
-					capacity, lf);
+			if (flag)
+				System.out.printf("REMOVE, %d, %d, %d, %f\n", removeDuration,
+						size, capacity, lf);
 		}
 
 	}
 
 	public static void main(String[] args) {
-		QuadraticProbingTest qt = new QuadraticProbingTest();
+		HashingTest qt = new HashingTest();
 //		qt.test1();
-		qt.test2();
+//		qt.test2();
 
-//		qt.test3();
+		for (int i = 0; i < 4; i++) {
+			switch (i) {
+			case 0:
+				System.out.println("Linear");
+				qt.ht = new LinearHashTable<>();
+				break;
+			case 1:
+				System.out.println("Chained");
+				qt.ht = new ChainedHashTable<>();
+				break;
+			case 2:
+				System.out.println("Cuckoo");
+				qt.ht = new CuckooHashTable<>();
+				break;
+			case 3:
+				System.out.println("Quadratic");
+				qt.ht = new QuadraticProbing<>();
+				break;
+
+			}
+			qt.test3();
+		}
 	}
 
 }
