@@ -111,72 +111,106 @@ public class AVLTree<E extends Comparable<E>> implements Tree<E> {
 
 	@Override
 	public boolean delete(E key) {
-		boolean foundAndDeleted = delete(key, root);
-		return false;
+		root = deleteNode(root, key);
+
+		return root != null;
 	}
 
-	private boolean delete(E key, AVLTree<E>.Node node) {
-		if (node == null)
-			return false;
+	private AVLTree<E>.Node deleteNode(AVLTree<E>.Node root, E key) {
 
-		Node parent = new Node(null);
-		parent.left = root;
+		if (root == null)
+			return root;
 
-		while (node != null && node.val.compareTo(key) != 0) {
-			if (node.val.compareTo(key) < 0) {
-				parent = node;
-				node = node.right;
+		// If the key to be deleted is smaller than
+		// the root's key, then it lies in left subtree
+		if (key.compareTo(root.val) < 0)
+			root.left = deleteNode(root.left, key);
+
+		// If the key to be deleted is greater than the
+		// root's key, then it lies in right subtree
+		else if (key.compareTo(root.val) > 0)
+			root.right = deleteNode(root.right, key);
+
+		// if key is same as root's key, then this is the node
+		// to be deleted
+		else {
+
+			// node with only one child or no child
+			if ((root.left == null) || (root.right == null)) {
+				Node temp = null;
+				if (temp == root.left)
+					temp = root.right;
+				else
+					temp = root.left;
+
+				// No child case
+				if (temp == null) {
+					temp = root;
+					root = null;
+				} else {
+//					root = temp;
+					root.val = temp.val; // Copy contents of non-empty child
+					root.left = temp.left;
+					temp.left = null;
+					root.right = temp.right;
+					temp.right = null;
+				}
 			} else {
-				parent = node;
-				node = node.left;
+
+				// node with two children: Get the inorder
+				// successor (smallest in the right subtree)
+				Node temp = findPredecessor(root.right);
+
+				// Copy the inorder successor's data to this node
+				root.val = temp.val;
+
+				// Delete the inorder successor
+				root.right = deleteNode(root.right, temp.val);
 			}
 		}
-		if (node == null)
-			return false;
 
-		boolean status = true;
-		if (node.left == null && node.right == null) {
-			parent.left = parent.left == node ? null : parent.left;
-			parent.right = parent.right == node ? null : parent.right;
+		// If the tree had only one node then return
+		if (root == null)
+			return root;
+
+		// STEP 2: UPDATE HEIGHT OF THE CURRENT NODE
+		root.height = Math.max(height(root.left), height(root.right)) + 1;
+
+		// STEP 3: GET THE BALANCE FACTOR OF THIS NODE (to check whether
+		// this node became unbalanced)
+		int balance = balanceFactor(root);
+
+		// If this node becomes unbalanced, then there are 4 cases
+		// Left Left Case
+		if (balance > 1 && balanceFactor(root.left) >= 0)
+			return rightRotate(root);
+
+		// Left Right Case
+		if (balance > 1 && balanceFactor(root.left) < 0) {
+			root.left = leftRotate(root.left);
+			return rightRotate(root);
 		}
 
-		else if (node.right == null) {
-			parent.left = parent.left == node ? node.left : parent.left;
-			parent.right = parent.right == node ? node.left : parent.right;
+		// Right Right Case
+		if (balance < -1 && balanceFactor(root.right) <= 0)
+			return leftRotate(root);
+
+		// Right Left Case
+		if (balance < -1 && balanceFactor(root.right) > 0) {
+			root.right = rightRotate(root.right);
+			return leftRotate(root);
 		}
 
-		else if (node.left == null) {
-			parent.left = parent.left == node ? node.right : parent.left;
-			parent.right = parent.right == node ? node.right : parent.right;
-		}
+		return root;
 
-		else {
-			Node[] predecessor = findPredecessor(node);
-			Node pparent = predecessor[0];
-			Node pred = predecessor[1];
-			// unlink the predecessor from its parent;
-			pparent.left = pred == pparent.left ? pred.right : pparent.left;
-			pparent.right = pred == pparent.right ? pred.right : pparent.right;
-			// unlink the node to delete from its children
-			// link the predecessor to children of node to delete
-			pred.left = node.left;
-			pred.right = node.right;
-			// link the parent of node to delete to pred
-			parent.left = parent.left == node ? pred : parent.left;
-			parent.right = parent.right == node ? pred : parent.right;
-		}
-
-		return status;
 	}
 
-	private AVLTree<E>.Node[] findPredecessor(AVLTree<E>.Node node) {
-		Node parent = node;
-		Node pred = node.right;
-		while (pred.left == null) {
-			parent = pred;
+	private AVLTree<E>.Node findPredecessor(AVLTree<E>.Node node) {
+		Node pred = node;
+		while (pred.left != null) {
 			pred = pred.left;
 		}
-		return (Node[]) new Object[] { parent, pred };
+		return pred;
 	}
 
 	@Override
@@ -204,6 +238,10 @@ public class AVLTree<E extends Comparable<E>> implements Tree<E> {
 
 	public void print() {
 		int h = height(root);
+		if (h == 0) {
+			System.out.println("null");
+			return;
+		}
 		AVLTree<E>.Node[] tree = (AVLTree<E>.Node[]) new AVLTree<?>.Node[h * h
 				- 1];
 		print(tree, root, 0);
@@ -262,12 +300,18 @@ public class AVLTree<E extends Comparable<E>> implements Tree<E> {
 		return isBalanced;
 	}
 
+	/**
+	 * @param args
+	 */
 	public static void main(String[] args) {
 		AVLTree<Integer> bt = new AVLTree<>();
 		for (int i = 0; i < 7; i++)
 			insert(bt, i);
+		bt.print();
 		for (int i = 0; i < 7; i++) {
+			System.out.println("Delete i = " + i);
 			delete(bt, i);
+			System.out.println(bt.search(i));
 			bt.print();
 		}
 //		insert(bt, 1);
