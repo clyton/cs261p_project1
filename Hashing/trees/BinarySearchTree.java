@@ -116,8 +116,27 @@ public class BinarySearchTree<E extends Comparable<E>> implements Tree<E> {
 
 	public String print() {
 		StringBuffer sb = new StringBuffer();
-		print(root, sb);
+//		print(root, sb);
+		print(root, sb, 0, 10);
+		sb.append("\n_______________________________________________");
 		return sb.toString();
+	}
+
+	private void print(BinarySearchTree<E>.Node node, StringBuffer sb,
+			int space, int count) {
+
+		if (node == null)
+			return;
+
+		space += count;
+		print(node.right, sb, space, count);
+
+		for (int i = count; i < space; i++) {
+			sb.append(" ");
+		}
+		sb.append(node.val).append("\n");
+
+		print(node.left, sb, space, count);
 	}
 
 	public void print(Node node, StringBuffer sb) {
